@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>Prima Motion | Full Variable Biomechanics Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root { --primary: #1a3a5a; --secondary: #3498db; --bg: #f1f5f9; --accent: #e67e22; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: #334155; }
+        .dashboard { max-width: 1400px; margin: auto; display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
+        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
+        .header { grid-column: span 4; background: var(--primary); color: white; padding: 20px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .full-width { grid-column: span 4; }
+        .three-quarter { grid-column: span 3; }
+        .quarter { grid-column: span 1; }
+        .metadata-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-top: 10px; }
+        .meta-item { background: #f8fafc; padding: 10px; border-radius: 6px; border-left: 4px solid var(--secondary); }
+        .meta-label { font-size: 11px; color: #64748b; text-transform: uppercase; }
+        .meta-val { font-size: 16px; font-weight: bold; color: var(--primary); }
+        .chart-container { height: 450px; margin-top: 10px; }
+        .btn { background: var(--secondary); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+        th { background: #f8fafc; }
+    </style>
+</head>
+<body>
+
+<div class="dashboard">
+    <div class="header">
+        <div>
+            <h1 style="margin:0">PRIMA MOTION ANALYZER</h1>
+            <p id="session-title" style="margin:5px 0 0 0; font-size: 14px; opacity: 0.8;">Variable Tracking according to Untitled.csv</p>
+        </div>
+        <div>
+            <input type="file" id="fileInput" style="display:none">
+            <button class="btn" onclick="document.getElementById('fileInput').click()">Import JSON/Data</button>
+            <button class="btn" onclick="window.print()" style="background:#475569; margin-left:10px;">Export PDF</button>
+        </div>
+    </div>
+
+    <div class="card full-width">
+        <h3 style="margin-top:0">📁 Session Data (CSV Variables)</h3>
+        <div class="metadata-grid" id="metadataDisplay">
+            </div>
+    </div>
+
+    <div class="card three-quarter">
+        <h3 style="margin-top:0">📈 Acceleration & Performance Timeline</h3>
+        <div class="chart-container">
+            <canvas id="performanceChart"></canvas>
+        </div>
+    </div>
+
+    <div class="card quarter">
+        <h3 style="margin-top:0">📊 Biomechanics Stats</h3>
+        <table id="statsTable">
+            <thead><tr><th>Metric</th><th>Max</th><th>Avg</th></tr></thead>
+            <tbody id="statsBody"></tbody>
+        </table>
+        <div style="margin-top:20px; font-size:12px; color:#64748b;">
+            <p><strong>Note:</strong> ค่า Acc คำนวณแบบรายวินาที ($1Hz$) เพื่อดูแนวโน้มโหลดเชิงกลเบื้องต้นค่ะ</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    let chart;
+    const csvHeaders = [
+        "Title", "Category", "Start Time", "End Time", "Max HR (bpm)", 
+        "Low HR (bpm)", "High HR (bpm)", "Total HR (bpm)", "Active Energy (cal)", 
+        "Maximum Duration (secs)", "Anaerobic Duration (secs)", "Aerobic Duration (secs)", 
+        "Endurance Duration (secs)", "Recovery Duration (secs)", "HRV (msecs)", 
+        "1-Min Recovery Drop (bpm)", "2-Min Recovery Drop (bpm)", "3-Min Recovery Drop (bpm)"
+    ];
+
+    document.getElementById('fileInput').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            const data = JSON.parse(event.target.result);
+            processData(data);
+        };
+        reader.readAsText(file);
+    });
+
+    function processData(data) {
+        const session = data.sessions[0];
+        const profile = data.profiles[0];
+        const hr = session.heartRates.split(',').map(Number);
+        const steps = session.stepRates.split(',').map(Number);
+        const stepLen = session.stepLength / 100;
+
+        // 1. Calculate Acceleration
+        let speeds = [];
+        let accs = [];
+        steps.forEach((s, i) => {
+            const v = s * stepLen;
+            speeds.push(v);
+            const a = i === 0 ? 0 : (v - speeds[i-1]);
+            accs.push(a);
+        });
+
+        // 2. Map Metadata to CSV Headers
+        const metaValues = {
+            "Title": session.title,
+            "Category": "Soccer",
+            "Start Time": new Date(session.startTime * 1000).toLocaleTimeString(),
+            "End Time": new Date(session.endTime * 1000).toLocaleTimeString(),
+            "Max HR (bpm)": profile.maxHeartRate,
+            "Low HR (bpm)": Math.min(...hr.filter(h => h > 0)),
+            "High HR (bpm)": Math.max(...hr),
+            "Total HR (bpm)": hr.reduce((a,b)=>a+b, 0),
+            "Active Energy (cal)": session.activeEnergy,
+            "Maximum Duration (secs)": session.maximumDuration,
+            "Anaerobic Duration (secs)": session.anaerobicDuration,
+            "Aerobic Duration (secs)": session.aerobicDuration,
+            "Endurance Duration (secs)": session.enduranceDuration,
+            "Recovery Duration (secs)": session.recoveryDuration,
+            "HRV (msecs)": session.hrv || "N/A",
+            "1-Min Recovery Drop (bpm)": session.oneMinRecovery,
+            "2-Min Recovery Drop (bpm)": session.twoMinRecovery,
+            "3-Min Recovery Drop (bpm)": session.threeMinRecovery
+        };
+
+        const display = document.getElementById('metadataDisplay');
+        display.innerHTML = csvHeaders.map(h => `
+            <div class="meta-item">
+                <div class="meta-label">${h}</div>
+                <div class="meta-val">${metaValues[h] || '-'}</div>
+            </div>
+        `).join('');
+
+        // 3. Update Table Stats
+        const avg = (arr) => (arr.reduce((a,b)=>a+b,0)/arr.length).toFixed(2);
+        document.getElementById('statsBody').innerHTML = `
+            <tr><td>Speed (m/s)</td><td>${Math.max(...speeds).toFixed(2)}</td><td>${avg(speeds)}</td></tr>
+            <tr><td>Acc (m/s²)</td><td>${Math.max(...accs).toFixed(2)}</td><td>${avg(accs)}</td></tr>
+            <tr><td>HR (bpm)</td><td>${Math.max(...hr)}</td><td>${avg(hr)}</td></tr>
+        `;
+
+        // 4. Update Chart
+        updateChart(hr, accs, speeds);
+    }
+
+    function updateChart(hr, acc, speed) {
+        const ctx = document.getElementById('performanceChart').getContext('2d');
+        if(chart) chart.destroy();
+        chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: hr.map((_, i) => i),
+                datasets: [
+                    { label: 'Acceleration (m/s²)', data: acc, borderColor: '#e67e22', yAxisID: 'yAcc', borderWidth: 1, pointRadius: 0 },
+                    { label: 'Heart Rate (bpm)', data: hr, borderColor: '#e74c3c', yAxisID: 'yHR', borderWidth: 1.5, pointRadius: 0 },
+                    { label: 'Speed (m/s)', data: speed, borderColor: '#3498db', yAxisID: 'ySpeed', borderWidth: 1, pointRadius: 0, borderDash: [5,5] }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    yAcc: { position: 'left', title: { display: true, text: 'Acc (m/s²)' } },
+                    yHR: { position: 'right', title: { display: true, text: 'Heart Rate' } },
+                    ySpeed: { position: 'right', display: false }
+                }
+            }
+        });
+    }
+</script>
+</body>
+</html>
