@@ -49,7 +49,6 @@
     <!-- Header Section -->
     <header class="max-w-7xl mx-auto mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-slate-100 pb-8">
         <div class="flex items-center gap-6">
-            <!-- Prima Motion Logo -->
             <img src="https://assets.zyrosite.com/AwvkPRPaQNI9Dwxw/prima-logo-vector-color-YKbrek2a2qT61kV4.svg" alt="Prima Motion Logo" class="h-16 w-auto object-contain">
             
             <div class="border-l border-slate-200 pl-6">
@@ -77,8 +76,8 @@
         <!-- Summary Dashboard -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6" id="kpi-grid">
             <div class="card-minimal p-6 rounded-2xl">
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.15em] mb-2">Maximum Velocity</p>
-                <h2 class="text-3xl font-bold text-slate-800" id="max-speed">0.00 <span class="text-sm font-medium text-slate-400">m/s</span></h2>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.15em] mb-2">Total Distance</p>
+                <h2 class="text-3xl font-bold text-slate-800" id="total-dist">0.00 <span class="text-sm font-medium text-slate-400">km</span></h2>
             </div>
             <div class="card-minimal p-6 rounded-2xl">
                 <p class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.15em] mb-2">Peak Acceleration</p>
@@ -89,18 +88,21 @@
                 <h2 class="text-3xl font-bold text-slate-800" id="avg-hr">0 <span class="text-sm font-medium text-slate-400">bpm</span></h2>
             </div>
             <div class="card-minimal p-6 rounded-2xl border-purple-100 bg-purple-50/30">
-                <p class="text-[10px] font-bold text-[#4d2994] uppercase tracking-[0.15em] mb-2">Metabolic Cost</p>
+                <p class="text-[10px] font-bold text-[#4d2994] uppercase tracking-[0.15em] mb-2">Total Energy Cost</p>
                 <h2 class="text-3xl font-bold text-[#4d2994]" id="energy">0 <span class="text-sm font-medium opacity-60">kcal</span></h2>
             </div>
         </div>
 
         <!-- Metadata Section -->
         <section class="card-minimal rounded-2xl overflow-hidden">
-            <div class="px-6 py-4 border-b border-slate-50 flex items-center gap-2">
-                <div class="w-2 h-2 rounded-full bg-purple-400"></div>
-                <h3 class="font-bold text-slate-700 text-[11px] uppercase tracking-widest">Dataset Parameters</h3>
+            <div class="px-6 py-4 border-b border-slate-50 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <div class="w-2 h-2 rounded-full bg-purple-400"></div>
+                    <h3 class="font-bold text-slate-700 text-[11px] uppercase tracking-widest">Dataset Parameters</h3>
+                </div>
+                <div id="weather-badge" class="text-[10px] font-bold text-slate-400 uppercase flex items-center gap-1"></div>
             </div>
-            <div class="p-6 grid grid-cols-2 md:grid-cols-5 gap-8" id="metadata-container">
+            <div class="p-6 grid grid-cols-2 md:grid-cols-6 gap-8" id="metadata-container">
                 <div class="col-span-full text-center py-6 text-slate-300 text-sm font-light italic">Waiting for telemetry data...</div>
             </div>
         </section>
@@ -122,15 +124,15 @@
             <!-- Side Metrics -->
             <div class="lg:col-span-4 space-y-8">
                 <div class="card-minimal p-8 rounded-2xl">
-                    <h3 class="font-bold text-slate-800 mb-6 text-sm uppercase tracking-widest">Biomechanics</h3>
+                    <h3 class="font-bold text-slate-800 mb-6 text-sm uppercase tracking-widest">Metabolic Profile</h3>
                     <div class="space-y-5">
                         <div class="flex justify-between items-center border-b border-slate-50 pb-3">
-                            <span class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Peak Accel</span>
-                            <span class="font-bold text-slate-700 text-sm" id="table-max-acc">--</span>
+                            <span class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Active Energy</span>
+                            <span class="font-bold text-slate-700 text-sm" id="active-cal">--</span>
                         </div>
                         <div class="flex justify-between items-center border-b border-slate-50 pb-3">
-                            <span class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Avg Velocity</span>
-                            <span class="font-bold text-slate-700 text-sm" id="table-avg-speed">--</span>
+                            <span class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Afterburn (EPOC)</span>
+                            <span class="font-bold text-purple-600 text-sm" id="afterburn-cal">--</span>
                         </div>
                         <div class="flex justify-between items-center border-b border-slate-50 pb-3">
                             <span class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Anaerobic Dur</span>
@@ -139,24 +141,20 @@
                     </div>
                     <div class="mt-8 p-5 bg-slate-50 rounded-xl">
                         <p class="text-[10px] text-slate-500 leading-relaxed font-medium">
-                            <span class="text-[#4d2994] font-bold italic">Clinical Note:</span> Acceleration is computed as the first derivative of velocity. Mechanical work is proportional to the area under the acceleration curve.
+                            <span class="text-[#4d2994] font-bold italic">Scientific Insight:</span> "Afterburn" indicates excessive post-exercise oxygen consumption. Higher EPOC correlates with training intensity and metabolic disturbance.
                         </p>
                     </div>
                 </div>
 
                 <div class="bg-white border border-purple-100 p-8 rounded-2xl shadow-[0_10px_40px_-15px_rgba(77,41,148,0.1)]">
                     <h3 class="font-bold mb-6 text-[10px] text-[#4d2994] uppercase tracking-widest flex items-center gap-2">
-                        <i data-lucide="heart" class="w-4 h-4"></i> Recovery Profile
+                        <i data-lucide="zap" class="w-4 h-4"></i> Recovery Efficiency
                     </h3>
                     <div class="text-center py-6 border-y border-purple-50">
-                        <p class="text-5xl font-bold brand-font" id="hrv-val">--</p>
-                        <p class="text-[10px] text-slate-400 mt-3 uppercase font-bold tracking-[0.2em]">HRV RMSSD (ms)</p>
+                        <p class="text-5xl font-bold brand-font" id="hr-recovery-drop">--</p>
+                        <p class="text-[10px] text-slate-400 mt-3 uppercase font-bold tracking-[0.2em]">1-min HR Drop (bpm)</p>
                     </div>
-                    <div class="grid grid-cols-3 gap-4 mt-6">
-                        <div class="text-center">
-                            <p class="text-[9px] text-slate-400 uppercase font-bold mb-1">1m Drop</p>
-                            <p class="font-bold text-sm text-slate-700" id="drop-1m">--</p>
-                        </div>
+                    <div class="grid grid-cols-2 gap-4 mt-6">
                         <div class="text-center">
                             <p class="text-[9px] text-slate-400 uppercase font-bold mb-1">2m Drop</p>
                             <p class="font-bold text-sm text-slate-700" id="drop-2m">--</p>
@@ -173,12 +171,12 @@
 
     <footer class="max-w-7xl mx-auto mt-20 pt-10 border-t border-slate-100 flex flex-col md:flex-row justify-between items-center gap-6 text-slate-400 text-[10px] font-bold uppercase tracking-[0.2em]">
         <div class="flex items-center gap-6">
-            <p>&copy; 2026 Prima Motion Co., Ltd.</p>
+            <p>&copy; 2024 Prima Motion Co., Ltd.</p>
             <p>Biomechanics Research & Solutions</p>
         </div>
         <div class="flex items-center gap-3">
             <span class="w-2 h-2 rounded-full bg-green-400"></span>
-            <p class="text-slate-500 font-bold">www.primamotion.tech</p>
+            <p class="text-slate-500 font-bold" id="principal-name">Principal: Dr. Rattana Thongiam (PhD)</p>
         </div>
     </footer>
 
@@ -187,12 +185,12 @@
         let chart;
 
         const csvHeaders = [
-            { key: "title", label: "Session" },
-            { key: "category", label: "Category" },
+            { key: "firstName", label: "Athlete" },
+            { key: "title", label: "Activity" },
             { key: "startTime", label: "Start" },
-            { key: "endTime", label: "End" },
-            { key: "activeEnergy", label: "Energy" },
-            { key: "hrv", label: "HRV" }
+            { key: "totalSteps", label: "Steps" },
+            { key: "stepLength", label: "Step Len (cm)" },
+            { key: "temperature", label: "Temp" }
         ];
 
         document.getElementById('fileInput').addEventListener('change', function(e) {
@@ -209,6 +207,7 @@
             const steps = Array.from({length: count}, (_, i) => 2.2 + (Math.sin(i/20) * 0.8) + (Math.random() * 0.2));
             
             const sample = {
+                profiles: [{ firstName: "Dani", lastName: "Rojas" }],
                 sessions: [{
                     title: "Gait Efficiency Analysis #442",
                     category: "Sports Performance",
@@ -218,11 +217,14 @@
                     stepRates: steps.join(','),
                     stepLength: 130, 
                     activeEnergy: 615,
+                    afterburnEnergy: 211,
                     anaerobicDuration: 480,
                     hrv: 52.4,
                     oneMinRecovery: 28,
                     twoMinRecovery: 45,
-                    threeMinRecovery: 54
+                    threeMinRecovery: 54,
+                    weatherCondition: "Rain",
+                    temperature: 50
                 }]
             };
             processData(sample);
@@ -232,23 +234,31 @@
             if(!data.sessions || data.sessions.length === 0) return;
             
             const session = data.sessions[0];
+            const profile = data.profiles[0];
+            
             const hrArr = session.heartRates.split(',').map(Number);
             const stepArr = session.stepRates.split(',').map(Number);
-            const stepLenM = (session.stepLength || 100) / 100;
+            const stepLenM = (session.stepLength || 74) / 100;
 
             let speeds = stepArr.map(s => s * stepLenM);
             let accs = speeds.map((v, i) => i === 0 ? 0 : (v - speeds[i-1]));
+            const totalDistKm = (session.totalSteps * stepLenM) / 1000;
 
-            updateMetadata(session);
-            updateKPIs(hrArr, speeds, accs, session);
+            updateMetadata({...session, firstName: profile.firstName});
+            updateKPIs(hrArr, speeds, accs, session, totalDistKm);
             renderChart(hrArr, speeds, accs);
+            
+            if(profile.firstName) {
+                document.getElementById('principal-name').innerText = `Athlete: ${profile.firstName} ${profile.lastName || ''}`;
+            }
         }
 
         function updateMetadata(session) {
             const container = document.getElementById('metadata-container');
             container.innerHTML = csvHeaders.map(h => {
                 let val = session[h.key];
-                if(h.key.includes('Time')) val = new Date(val * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                if(h.key === 'startTime') val = new Date(val * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                if(h.key === 'temperature') val = `${val}°`;
                 return `
                     <div>
                         <p class="text-[9px] uppercase font-bold text-slate-300 tracking-[0.15em] mb-1">${h.label}</p>
@@ -256,24 +266,27 @@
                     </div>
                 `;
             }).join('');
+
+            const weatherBadge = document.getElementById('weather-badge');
+            weatherBadge.innerHTML = `<i data-lucide="cloud-rain" class="w-3 h-3"></i> ${session.weatherCondition || ''}`;
+            lucide.createIcons();
         }
 
-        function updateKPIs(hr, speed, acc, session) {
+        function updateKPIs(hr, speed, acc, session, dist) {
             const avg = arr => arr.length ? (arr.reduce((a,b)=>a+b, 0)/arr.length) : 0;
             
-            document.getElementById('max-speed').innerHTML = `${Math.max(...speed).toFixed(2)} <span class="text-xs font-medium text-slate-400 ml-1">m/s</span>`;
+            document.getElementById('total-dist').innerHTML = `${dist.toFixed(2)} <span class="text-xs font-medium text-slate-400 ml-1">km</span>`;
             document.getElementById('max-acc').innerHTML = `${Math.max(...acc).toFixed(2)} <span class="text-xs font-medium text-slate-400 ml-1">m/s²</span>`;
             document.getElementById('avg-hr').innerHTML = `${Math.round(avg(hr))} <span class="text-xs font-medium text-slate-400 ml-1">bpm</span>`;
-            document.getElementById('energy').innerHTML = `${session.activeEnergy || 0} <span class="text-xs font-medium opacity-60 ml-1">kcal</span>`;
+            document.getElementById('energy').innerHTML = `${(session.activeEnergy + (session.afterburnEnergy || 0))} <span class="text-xs font-medium opacity-60 ml-1">kcal</span>`;
 
-            document.getElementById('table-max-acc').innerText = Math.max(...acc).toFixed(2) + " m/s²";
-            document.getElementById('table-avg-speed').innerText = avg(speed).toFixed(2) + " m/s";
+            document.getElementById('active-cal').innerText = session.activeEnergy + " kcal";
+            document.getElementById('afterburn-cal').innerText = (session.afterburnEnergy || 0) + " kcal";
             document.getElementById('table-anaerobic').innerText = (session.anaerobicDuration || 0) + " s";
             
-            document.getElementById('hrv-val').innerText = session.hrv || "--";
-            document.getElementById('drop-1m').innerText = (session.oneMinRecovery || "-") + " bpm";
-            document.getElementById('drop-2m').innerText = (session.twoMinRecovery || "-") + " bpm";
-            document.getElementById('drop-3m').innerText = (session.threeMinRecovery || "-") + " bpm";
+            document.getElementById('hr-recovery-drop').innerText = session.oneMinRecovery || "--";
+            document.getElementById('drop-2m').innerText = (session.twoMinRecovery || "--") + " bpm";
+            document.getElementById('drop-3m').innerText = (session.threeMinRecovery || "--") + " bpm";
         }
 
         function renderChart(hr, speed, acc) {
@@ -281,8 +294,8 @@
             if(chart) chart.destroy();
 
             const purpleGradient = ctx.createLinearGradient(0, 0, 0, 400);
-            purpleGradient.addColorStop(0, 'rgba(147, 51, 234, 0.08)');
-            purpleGradient.addColorStop(1, 'rgba(147, 51, 234, 0)');
+            purpleGradient.addColorStop(0, 'rgba(77, 41, 148, 0.1)');
+            purpleGradient.addColorStop(1, 'rgba(77, 41, 148, 0)');
 
             chart = new Chart(ctx, {
                 type: 'line',
@@ -296,25 +309,25 @@
                             backgroundColor: purpleGradient,
                             fill: true,
                             yAxisID: 'yHR',
-                            borderWidth: 2.5,
+                            borderWidth: 2,
                             pointRadius: 0,
                             tension: 0.4
                         },
                         {
-                            label: 'Velocity',
+                            label: 'Velocity (m/s)',
                             data: speed,
                             borderColor: '#cbd5e1',
-                            yAxisID: 'ySpeed',
+                            yAxisID: 'yMetric',
                             borderWidth: 1.5,
                             pointRadius: 0,
                             tension: 0.2
                         },
                         {
-                            label: 'Acceleration',
+                            label: 'Acceleration (m/s²)',
                             data: acc,
                             borderColor: '#d8b4fe',
-                            yAxisID: 'yAcc',
-                            borderWidth: 1,
+                            yAxisID: 'yMetric',
+                            borderWidth: 1.2,
                             pointRadius: 0,
                             borderDash: [2, 2]
                         }
@@ -328,7 +341,7 @@
                         x: { 
                             grid: { display: false }, 
                             ticks: { font: { size: 9 }, color: '#94a3b8' },
-                            title: { display: true, text: 'TIME ELAPSED (S)', font: { size: 9, weight: '800' }, color: '#94a3b8' } 
+                            title: { display: true, text: 'TIME ELAPSED (SEC)', font: { size: 9, weight: '800' }, color: '#94a3b8' } 
                         },
                         yHR: { 
                             position: 'right', 
@@ -336,13 +349,12 @@
                             title: { display: true, text: 'BPM', font: { size: 9, weight: '800' }, color: '#4d2994' },
                             grid: { display: false }
                         },
-                        yAcc: { 
+                        yMetric: { 
                             position: 'left', 
                             ticks: { font: { size: 9 }, color: '#94a3b8' },
-                            title: { display: true, text: 'm/s²', font: { size: 9, weight: '800' }, color: '#94a3b8' },
+                            title: { display: true, text: 'm/s | m/s²', font: { size: 9, weight: '800' }, color: '#94a3b8' },
                             grid: { color: '#f8fafc' }
-                        },
-                        ySpeed: { display: false }
+                        }
                     },
                     plugins: {
                         legend: { 
