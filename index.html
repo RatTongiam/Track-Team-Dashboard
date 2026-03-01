@@ -2,172 +2,367 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <title>Prima Motion | Full Variable Biomechanics Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prima Motion | Biomechanics Performance Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Josefin+Sans:wght@700&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #1a3a5a; --secondary: #3498db; --bg: #f1f5f9; --accent: #e67e22; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: #334155; }
-        .dashboard { max-width: 1400px; margin: auto; display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
-        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
-        .header { grid-column: span 4; background: var(--primary); color: white; padding: 20px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; }
-        .full-width { grid-column: span 4; }
-        .three-quarter { grid-column: span 3; }
-        .quarter { grid-column: span 1; }
-        .metadata-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-top: 10px; }
-        .meta-item { background: #f8fafc; padding: 10px; border-radius: 6px; border-left: 4px solid var(--secondary); }
-        .meta-label { font-size: 11px; color: #64748b; text-transform: uppercase; }
-        .meta-val { font-size: 16px; font-weight: bold; color: var(--primary); }
-        .chart-container { height: 450px; margin-top: 10px; }
-        .btn { background: var(--secondary); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; }
-        table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0; }
-        th { background: #f8fafc; }
+        :root {
+            --prima-purple: #4d2994;
+            --lavender-light: #f3e8ff;
+            --lavender-mid: #d8b4fe;
+            --lavender-dark: #9333ea;
+        }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #ffffff; 
+            color: #1e293b;
+        }
+        .brand-font { font-family: 'Josefin Sans', sans-serif; color: var(--prima-purple); }
+        .chart-container { position: relative; height: 420px; width: 100%; }
+        
+        /* Minimalist Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: var(--lavender-mid); border-radius: 10px; }
+        
+        .card-minimal {
+            background: #ffffff;
+            border: 1px solid #f1f5f9;
+            transition: all 0.2s ease;
+        }
+        .card-minimal:hover {
+            border-color: var(--lavender-mid);
+        }
+
+        @media print {
+            .no-print { display: none; }
+            body { background: white; padding: 0; }
+            .card-minimal { border: 1px solid #e2e8f0; }
+        }
     </style>
 </head>
-<body>
+<body class="p-6 md:p-10">
 
-<div class="dashboard">
-    <div class="header">
-        <div>
-            <h1 style="margin:0">PRIMA MOTION ANALYZER</h1>
-            <p id="session-title" style="margin:5px 0 0 0; font-size: 14px; opacity: 0.8;">Variable Tracking according to Untitled.csv</p>
-        </div>
-        <div>
-            <input type="file" id="fileInput" style="display:none">
-            <button class="btn" onclick="document.getElementById('fileInput').click()">Import JSON/Data</button>
-            <button class="btn" onclick="window.print()" style="background:#475569; margin-left:10px;">Export PDF</button>
-        </div>
-    </div>
-
-    <div class="card full-width">
-        <h3 style="margin-top:0">📁 Session Data (CSV Variables)</h3>
-        <div class="metadata-grid" id="metadataDisplay">
+    <!-- Header Section -->
+    <header class="max-w-7xl mx-auto mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-slate-100 pb-8">
+        <div class="flex items-center gap-6">
+            <!-- Prima Motion Logo -->
+            <img src="https://assets.zyrosite.com/AwvkPRPaQNI9Dwxw/prima-logo-vector-color-YKbrek2a2qT61kV4.svg" alt="Prima Motion Logo" class="h-16 w-auto object-contain">
+            
+            <div class="border-l border-slate-200 pl-6">
+                <h1 class="text-3xl font-bold tracking-tight brand-font uppercase leading-none">PRIMA MOTION TECHNOLOGY</h1>
+                <p class="text-slate-400 text-xs font-semibold uppercase tracking-[0.25em] mt-2">Technology that unlocks scientific insight</p>
             </div>
-    </div>
-
-    <div class="card three-quarter">
-        <h3 style="margin-top:0">📈 Acceleration & Performance Timeline</h3>
-        <div class="chart-container">
-            <canvas id="performanceChart"></canvas>
         </div>
-    </div>
-
-    <div class="card quarter">
-        <h3 style="margin-top:0">📊 Biomechanics Stats</h3>
-        <table id="statsTable">
-            <thead><tr><th>Metric</th><th>Max</th><th>Avg</th></tr></thead>
-            <tbody id="statsBody"></tbody>
-        </table>
-        <div style="margin-top:20px; font-size:12px; color:#64748b;">
-            <p><strong>Note:</strong> ค่า Acc คำนวณแบบรายวินาที ($1Hz$) เพื่อดูแนวโน้มโหลดเชิงกลเบื้องต้นค่ะ</p>
+        
+        <div class="flex gap-3 no-print">
+            <button onclick="loadSampleData()" class="px-5 py-2.5 bg-white border border-slate-200 hover:border-purple-300 text-slate-600 rounded-full text-xs font-bold uppercase tracking-widest transition-all flex items-center gap-2">
+                <i data-lucide="beaker" class="w-3.5 h-3.5"></i> Test Bench
+            </button>
+            <button onclick="document.getElementById('fileInput').click()" class="px-5 py-2.5 bg-[#4d2994] hover:bg-[#3d2075] text-white rounded-full text-xs font-bold uppercase tracking-widest transition-all shadow-sm flex items-center gap-2">
+                <i data-lucide="plus" class="w-3.5 h-3.5"></i> Import JSON
+            </button>
+            <input type="file" id="fileInput" class="hidden" accept=".json">
+            <button onclick="window.print()" class="px-5 py-2.5 bg-slate-50 hover:bg-slate-100 text-slate-500 rounded-full text-xs font-bold uppercase tracking-widest transition-all flex items-center gap-2">
+                <i data-lucide="printer" class="w-3.5 h-3.5"></i> Print
+            </button>
         </div>
-    </div>
-</div>
+    </header>
 
-<script>
-    let chart;
-    const csvHeaders = [
-        "Title", "Category", "Start Time", "End Time", "Max HR (bpm)", 
-        "Low HR (bpm)", "High HR (bpm)", "Total HR (bpm)", "Active Energy (cal)", 
-        "Maximum Duration (secs)", "Anaerobic Duration (secs)", "Aerobic Duration (secs)", 
-        "Endurance Duration (secs)", "Recovery Duration (secs)", "HRV (msecs)", 
-        "1-Min Recovery Drop (bpm)", "2-Min Recovery Drop (bpm)", "3-Min Recovery Drop (bpm)"
-    ];
+    <main class="max-w-7xl mx-auto space-y-8">
+        
+        <!-- Summary Dashboard -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6" id="kpi-grid">
+            <div class="card-minimal p-6 rounded-2xl">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.15em] mb-2">Maximum Velocity</p>
+                <h2 class="text-3xl font-bold text-slate-800" id="max-speed">0.00 <span class="text-sm font-medium text-slate-400">m/s</span></h2>
+            </div>
+            <div class="card-minimal p-6 rounded-2xl">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.15em] mb-2">Peak Acceleration</p>
+                <h2 class="text-3xl font-bold text-slate-800" id="max-acc">0.00 <span class="text-sm font-medium text-slate-400">m/s²</span></h2>
+            </div>
+            <div class="card-minimal p-6 rounded-2xl">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.15em] mb-2">Avg Cardiac Load</p>
+                <h2 class="text-3xl font-bold text-slate-800" id="avg-hr">0 <span class="text-sm font-medium text-slate-400">bpm</span></h2>
+            </div>
+            <div class="card-minimal p-6 rounded-2xl border-purple-100 bg-purple-50/30">
+                <p class="text-[10px] font-bold text-[#4d2994] uppercase tracking-[0.15em] mb-2">Metabolic Cost</p>
+                <h2 class="text-3xl font-bold text-[#4d2994]" id="energy">0 <span class="text-sm font-medium opacity-60">kcal</span></h2>
+            </div>
+        </div>
 
-    document.getElementById('fileInput').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = function(event) {
-            const data = JSON.parse(event.target.result);
-            processData(data);
-        };
-        reader.readAsText(file);
-    });
+        <!-- Metadata Section -->
+        <section class="card-minimal rounded-2xl overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-50 flex items-center gap-2">
+                <div class="w-2 h-2 rounded-full bg-purple-400"></div>
+                <h3 class="font-bold text-slate-700 text-[11px] uppercase tracking-widest">Dataset Parameters</h3>
+            </div>
+            <div class="p-6 grid grid-cols-2 md:grid-cols-5 gap-8" id="metadata-container">
+                <div class="col-span-full text-center py-6 text-slate-300 text-sm font-light italic">Waiting for telemetry data...</div>
+            </div>
+        </section>
 
-    function processData(data) {
-        const session = data.sessions[0];
-        const profile = data.profiles[0];
-        const hr = session.heartRates.split(',').map(Number);
-        const steps = session.stepRates.split(',').map(Number);
-        const stepLen = session.stepLength / 100;
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <!-- Timeline Analysis -->
+            <div class="lg:col-span-8 card-minimal p-8 rounded-2xl">
+                <div class="flex justify-between items-center mb-8">
+                    <h3 class="font-bold text-slate-800 text-sm uppercase tracking-widest flex items-center gap-2">
+                        <i data-lucide="activity" class="w-4 h-4 text-purple-600"></i> Performance Timeline
+                    </h3>
+                    <div id="session-tag" class="text-[10px] font-bold text-purple-400 bg-purple-50 px-3 py-1 rounded-full uppercase tracking-tighter">1Hz High Precision</div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="mainChart"></canvas>
+                </div>
+            </div>
 
-        // 1. Calculate Acceleration
-        let speeds = [];
-        let accs = [];
-        steps.forEach((s, i) => {
-            const v = s * stepLen;
-            speeds.push(v);
-            const a = i === 0 ? 0 : (v - speeds[i-1]);
-            accs.push(a);
+            <!-- Side Metrics -->
+            <div class="lg:col-span-4 space-y-8">
+                <div class="card-minimal p-8 rounded-2xl">
+                    <h3 class="font-bold text-slate-800 mb-6 text-sm uppercase tracking-widest">Biomechanics</h3>
+                    <div class="space-y-5">
+                        <div class="flex justify-between items-center border-b border-slate-50 pb-3">
+                            <span class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Peak Accel</span>
+                            <span class="font-bold text-slate-700 text-sm" id="table-max-acc">--</span>
+                        </div>
+                        <div class="flex justify-between items-center border-b border-slate-50 pb-3">
+                            <span class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Avg Velocity</span>
+                            <span class="font-bold text-slate-700 text-sm" id="table-avg-speed">--</span>
+                        </div>
+                        <div class="flex justify-between items-center border-b border-slate-50 pb-3">
+                            <span class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Anaerobic Dur</span>
+                            <span class="font-bold text-slate-700 text-sm" id="table-anaerobic">--</span>
+                        </div>
+                    </div>
+                    <div class="mt-8 p-5 bg-slate-50 rounded-xl">
+                        <p class="text-[10px] text-slate-500 leading-relaxed font-medium">
+                            <span class="text-[#4d2994] font-bold italic">Clinical Note:</span> Acceleration is computed as the first derivative of velocity. Mechanical work is proportional to the area under the acceleration curve.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="bg-white border border-purple-100 p-8 rounded-2xl shadow-[0_10px_40px_-15px_rgba(77,41,148,0.1)]">
+                    <h3 class="font-bold mb-6 text-[10px] text-[#4d2994] uppercase tracking-widest flex items-center gap-2">
+                        <i data-lucide="heart" class="w-4 h-4"></i> Recovery Profile
+                    </h3>
+                    <div class="text-center py-6 border-y border-purple-50">
+                        <p class="text-5xl font-bold brand-font" id="hrv-val">--</p>
+                        <p class="text-[10px] text-slate-400 mt-3 uppercase font-bold tracking-[0.2em]">HRV RMSSD (ms)</p>
+                    </div>
+                    <div class="grid grid-cols-3 gap-4 mt-6">
+                        <div class="text-center">
+                            <p class="text-[9px] text-slate-400 uppercase font-bold mb-1">1m Drop</p>
+                            <p class="font-bold text-sm text-slate-700" id="drop-1m">--</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-[9px] text-slate-400 uppercase font-bold mb-1">2m Drop</p>
+                            <p class="font-bold text-sm text-slate-700" id="drop-2m">--</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-[9px] text-slate-400 uppercase font-bold mb-1">3m Drop</p>
+                            <p class="font-bold text-sm text-slate-700" id="drop-3m">--</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="max-w-7xl mx-auto mt-20 pt-10 border-t border-slate-100 flex flex-col md:flex-row justify-between items-center gap-6 text-slate-400 text-[10px] font-bold uppercase tracking-[0.2em]">
+        <div class="flex items-center gap-6">
+            <p>&copy; 2024 Prima Motion Co., Ltd.</p>
+            <p>Biomechanics Research & Solutions</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <span class="w-2 h-2 rounded-full bg-green-400"></span>
+            <p class="text-slate-500 font-bold">Principal: Dr. Rattana Thongiam (PhD)</p>
+        </div>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+        let chart;
+
+        const csvHeaders = [
+            { key: "title", label: "Session" },
+            { key: "category", label: "Category" },
+            { key: "startTime", label: "Start" },
+            { key: "endTime", label: "End" },
+            { key: "activeEnergy", label: "Energy" },
+            { key: "hrv", label: "HRV" }
+        ];
+
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (event) => processData(JSON.parse(event.target.result));
+            reader.readAsText(file);
         });
 
-        // 2. Map Metadata to CSV Headers
-        const metaValues = {
-            "Title": session.title,
-            "Category": "Soccer",
-            "Start Time": new Date(session.startTime * 1000).toLocaleTimeString(),
-            "End Time": new Date(session.endTime * 1000).toLocaleTimeString(),
-            "Max HR (bpm)": profile.maxHeartRate,
-            "Low HR (bpm)": Math.min(...hr.filter(h => h > 0)),
-            "High HR (bpm)": Math.max(...hr),
-            "Total HR (bpm)": hr.reduce((a,b)=>a+b, 0),
-            "Active Energy (cal)": session.activeEnergy,
-            "Maximum Duration (secs)": session.maximumDuration,
-            "Anaerobic Duration (secs)": session.anaerobicDuration,
-            "Aerobic Duration (secs)": session.aerobicDuration,
-            "Endurance Duration (secs)": session.enduranceDuration,
-            "Recovery Duration (secs)": session.recoveryDuration,
-            "HRV (msecs)": session.hrv || "N/A",
-            "1-Min Recovery Drop (bpm)": session.oneMinRecovery,
-            "2-Min Recovery Drop (bpm)": session.twoMinRecovery,
-            "3-Min Recovery Drop (bpm)": session.threeMinRecovery
-        };
+        function loadSampleData() {
+            const count = 400;
+            const hr = Array.from({length: count}, (_, i) => 110 + (Math.sin(i/50) * 30) + (Math.random() * 5));
+            const steps = Array.from({length: count}, (_, i) => 2.2 + (Math.sin(i/20) * 0.8) + (Math.random() * 0.2));
+            
+            const sample = {
+                sessions: [{
+                    title: "Gait Efficiency Analysis #442",
+                    category: "Sports Performance",
+                    startTime: Date.now() / 1000 - 3600,
+                    endTime: Date.now() / 1000,
+                    heartRates: hr.join(','),
+                    stepRates: steps.join(','),
+                    stepLength: 130, 
+                    activeEnergy: 615,
+                    anaerobicDuration: 480,
+                    hrv: 52.4,
+                    oneMinRecovery: 28,
+                    twoMinRecovery: 45,
+                    threeMinRecovery: 54
+                }]
+            };
+            processData(sample);
+        }
 
-        const display = document.getElementById('metadataDisplay');
-        display.innerHTML = csvHeaders.map(h => `
-            <div class="meta-item">
-                <div class="meta-label">${h}</div>
-                <div class="meta-val">${metaValues[h] || '-'}</div>
-            </div>
-        `).join('');
+        function processData(data) {
+            if(!data.sessions || data.sessions.length === 0) return;
+            
+            const session = data.sessions[0];
+            const hrArr = session.heartRates.split(',').map(Number);
+            const stepArr = session.stepRates.split(',').map(Number);
+            const stepLenM = (session.stepLength || 100) / 100;
 
-        // 3. Update Table Stats
-        const avg = (arr) => (arr.reduce((a,b)=>a+b,0)/arr.length).toFixed(2);
-        document.getElementById('statsBody').innerHTML = `
-            <tr><td>Speed (m/s)</td><td>${Math.max(...speeds).toFixed(2)}</td><td>${avg(speeds)}</td></tr>
-            <tr><td>Acc (m/s²)</td><td>${Math.max(...accs).toFixed(2)}</td><td>${avg(accs)}</td></tr>
-            <tr><td>HR (bpm)</td><td>${Math.max(...hr)}</td><td>${avg(hr)}</td></tr>
-        `;
+            let speeds = stepArr.map(s => s * stepLenM);
+            let accs = speeds.map((v, i) => i === 0 ? 0 : (v - speeds[i-1]));
 
-        // 4. Update Chart
-        updateChart(hr, accs, speeds);
-    }
+            updateMetadata(session);
+            updateKPIs(hrArr, speeds, accs, session);
+            renderChart(hrArr, speeds, accs);
+        }
 
-    function updateChart(hr, acc, speed) {
-        const ctx = document.getElementById('performanceChart').getContext('2d');
-        if(chart) chart.destroy();
-        chart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: hr.map((_, i) => i),
-                datasets: [
-                    { label: 'Acceleration (m/s²)', data: acc, borderColor: '#e67e22', yAxisID: 'yAcc', borderWidth: 1, pointRadius: 0 },
-                    { label: 'Heart Rate (bpm)', data: hr, borderColor: '#e74c3c', yAxisID: 'yHR', borderWidth: 1.5, pointRadius: 0 },
-                    { label: 'Speed (m/s)', data: speed, borderColor: '#3498db', yAxisID: 'ySpeed', borderWidth: 1, pointRadius: 0, borderDash: [5,5] }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    yAcc: { position: 'left', title: { display: true, text: 'Acc (m/s²)' } },
-                    yHR: { position: 'right', title: { display: true, text: 'Heart Rate' } },
-                    ySpeed: { position: 'right', display: false }
+        function updateMetadata(session) {
+            const container = document.getElementById('metadata-container');
+            container.innerHTML = csvHeaders.map(h => {
+                let val = session[h.key];
+                if(h.key.includes('Time')) val = new Date(val * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                return `
+                    <div>
+                        <p class="text-[9px] uppercase font-bold text-slate-300 tracking-[0.15em] mb-1">${h.label}</p>
+                        <p class="text-[11px] font-bold text-slate-600 truncate">${val || '-'}</p>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateKPIs(hr, speed, acc, session) {
+            const avg = arr => arr.length ? (arr.reduce((a,b)=>a+b, 0)/arr.length) : 0;
+            
+            document.getElementById('max-speed').innerHTML = `${Math.max(...speed).toFixed(2)} <span class="text-xs font-medium text-slate-400 ml-1">m/s</span>`;
+            document.getElementById('max-acc').innerHTML = `${Math.max(...acc).toFixed(2)} <span class="text-xs font-medium text-slate-400 ml-1">m/s²</span>`;
+            document.getElementById('avg-hr').innerHTML = `${Math.round(avg(hr))} <span class="text-xs font-medium text-slate-400 ml-1">bpm</span>`;
+            document.getElementById('energy').innerHTML = `${session.activeEnergy || 0} <span class="text-xs font-medium opacity-60 ml-1">kcal</span>`;
+
+            document.getElementById('table-max-acc').innerText = Math.max(...acc).toFixed(2) + " m/s²";
+            document.getElementById('table-avg-speed').innerText = avg(speed).toFixed(2) + " m/s";
+            document.getElementById('table-anaerobic').innerText = (session.anaerobicDuration || 0) + " s";
+            
+            document.getElementById('hrv-val').innerText = session.hrv || "--";
+            document.getElementById('drop-1m').innerText = (session.oneMinRecovery || "-") + " bpm";
+            document.getElementById('drop-2m').innerText = (session.twoMinRecovery || "-") + " bpm";
+            document.getElementById('drop-3m').innerText = (session.threeMinRecovery || "-") + " bpm";
+        }
+
+        function renderChart(hr, speed, acc) {
+            const ctx = document.getElementById('mainChart').getContext('2d');
+            if(chart) chart.destroy();
+
+            const purpleGradient = ctx.createLinearGradient(0, 0, 0, 400);
+            purpleGradient.addColorStop(0, 'rgba(147, 51, 234, 0.08)');
+            purpleGradient.addColorStop(1, 'rgba(147, 51, 234, 0)');
+
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: hr.map((_, i) => i),
+                    datasets: [
+                        {
+                            label: 'Heart Rate',
+                            data: hr,
+                            borderColor: '#4d2994',
+                            backgroundColor: purpleGradient,
+                            fill: true,
+                            yAxisID: 'yHR',
+                            borderWidth: 2.5,
+                            pointRadius: 0,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Velocity',
+                            data: speed,
+                            borderColor: '#cbd5e1',
+                            yAxisID: 'ySpeed',
+                            borderWidth: 1.5,
+                            pointRadius: 0,
+                            tension: 0.2
+                        },
+                        {
+                            label: 'Acceleration',
+                            data: acc,
+                            borderColor: '#d8b4fe',
+                            yAxisID: 'yAcc',
+                            borderWidth: 1,
+                            pointRadius: 0,
+                            borderDash: [2, 2]
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    scales: {
+                        x: { 
+                            grid: { display: false }, 
+                            ticks: { font: { size: 9 }, color: '#94a3b8' },
+                            title: { display: true, text: 'TIME ELAPSED (S)', font: { size: 9, weight: '800' }, color: '#94a3b8' } 
+                        },
+                        yHR: { 
+                            position: 'right', 
+                            ticks: { font: { size: 9 }, color: '#4d2994' },
+                            title: { display: true, text: 'BPM', font: { size: 9, weight: '800' }, color: '#4d2994' },
+                            grid: { display: false }
+                        },
+                        yAcc: { 
+                            position: 'left', 
+                            ticks: { font: { size: 9 }, color: '#94a3b8' },
+                            title: { display: true, text: 'm/s²', font: { size: 9, weight: '800' }, color: '#94a3b8' },
+                            grid: { color: '#f8fafc' }
+                        },
+                        ySpeed: { display: false }
+                    },
+                    plugins: {
+                        legend: { 
+                            position: 'top', 
+                            align: 'end', 
+                            labels: { 
+                                boxWidth: 6, 
+                                usePointStyle: true,
+                                pointStyle: 'circle',
+                                font: { size: 9, weight: '700' },
+                                padding: 25,
+                                color: '#64748b'
+                            } 
+                        }
+                    }
                 }
-            }
-        });
-    }
-</script>
+            });
+        }
+
+        window.onload = loadSampleData;
+    </script>
 </body>
 </html>
